@@ -9,6 +9,7 @@ import TimerPage from "./pages/TimerPage";
 import TasksPage from "./pages/TasksPage";
 import NotFound from "./pages/NotFound";
 
+// Create a new query client
 const queryClient = new QueryClient();
 
 const App = () => (
