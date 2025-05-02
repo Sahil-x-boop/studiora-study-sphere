@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { useMobile } from '@/hooks/use-mobile'; 
+import { useIsMobile } from '@/hooks/use-mobile'; 
 import { useSidebar } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Home, Clock, CheckSquare, BookOpen, LogOut, Menu } from 'lucide-react';
@@ -11,8 +11,9 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 
 export function AppSidebar() {
-  const { collapsed, setCollapsed } = useSidebar();
-  const isMobile = useMobile();
+  const { state, setOpen } = useSidebar();
+  const isMobile = useIsMobile();
+  const collapsed = state === "collapsed";
   const { pathname } = useLocation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -25,6 +26,10 @@ export function AppSidebar() {
       description: "You have been successfully logged out."
     });
     navigate('/');
+  };
+
+  const toggleSidebar = () => {
+    setOpen(!collapsed);
   };
 
   const getInitials = (name: string) => {
@@ -53,7 +58,7 @@ export function AppSidebar() {
           variant="ghost"
           size="icon"
           className="absolute right-4 top-4 z-50 text-sidebar-foreground"
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={toggleSidebar}
         >
           <Menu />
         </Button>
