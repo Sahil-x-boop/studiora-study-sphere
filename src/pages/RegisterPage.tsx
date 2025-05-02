@@ -56,7 +56,7 @@ const RegisterPage: React.FC = () => {
           title: "Registration successful",
           description: "Welcome to StudiOra!",
         });
-        navigate('/');
+        navigate('/dashboard');
       } else {
         toast({
           title: "Registration failed",

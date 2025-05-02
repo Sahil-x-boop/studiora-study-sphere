@@ -41,7 +41,7 @@ export function AppSidebar() {
   };
 
   const navItems = [
-    { icon: <Home />, label: 'Dashboard', path: '/' },
+    { icon: <Home />, label: 'Dashboard', path: '/dashboard' },
     { icon: <Clock />, label: 'Timer', path: '/timer' },
     { icon: <CheckSquare />, label: 'Tasks', path: '/tasks' },
     { icon: <BookOpen />, label: 'Notes', path: '/notes' },

@@ -43,7 +43,7 @@ const LoginPage: React.FC = () => {
           title: "Login successful",
           description: "Welcome back to StudiOra!",
         });
-        navigate('/');
+        navigate('/dashboard');
       } else {
         toast({
           title: "Login failed",
