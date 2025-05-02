@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,20 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Studiora specific colors
+				studiora: {
+					50: '#f0f4fa',
+					100: '#dce7f5',
+					200: '#c2d5ed',
+					300: '#96b8e0',
+					400: '#6395d0',
+					500: '#4078c1',
+					600: '#2f60aa',
+					700: '#274d88',
+					800: '#254272',
+					900: '#23395f',
+					950: '#17233d',
 				}
 			},
 			borderRadius: {
