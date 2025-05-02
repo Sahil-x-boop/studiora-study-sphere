@@ -4,9 +4,18 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import { NotesProvider } from "./contexts/NotesContext";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+
+// Pages
+import LandingPage from "./pages/LandingPage";
 import Index from "./pages/Index";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 import TimerPage from "./pages/TimerPage";
 import TasksPage from "./pages/TasksPage";
+import NotesPage from "./pages/NotesPage";
 import NotFound from "./pages/NotFound";
 
 // Create a new query client
@@ -14,19 +23,59 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/timer" element={<TimerPage />} />
-          <Route path="/tasks" element={<TasksPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <NotesProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              
+              {/* Protected routes */}
+              <Route 
+                path="/dashboard" 
+                element={
+                  <ProtectedRoute>
+                    <Index />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/timer" 
+                element={
+                  <ProtectedRoute>
+                    <TimerPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/tasks" 
+                element={
+                  <ProtectedRoute>
+                    <TasksPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/notes" 
+                element={
+                  <ProtectedRoute>
+                    <NotesPage />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Catch-all route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </NotesProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
