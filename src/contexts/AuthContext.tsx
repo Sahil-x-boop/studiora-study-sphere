@@ -14,10 +14,11 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
+  resendEmailVerification: (email: string) => Promise<void>;
 }
 
 // Create context
@@ -91,22 +92,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  // Resend email verification
+  const resendEmailVerification = async (email: string): Promise<void> => {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+    });
+    
+    if (error) {
+      console.error('Error resending verification email:', error.message);
+      throw error;
+    }
+  };
+
   // Login functionality
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       console.log('Attempting to login with:', email);
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) {
         console.error('Login error:', error.message);
-        return false;
+        return { success: false, error: error.code };
       }
       
       console.log('Login successful:', data);
-      return true;
+      return { success: true };
     } catch (error) {
       console.error('Unexpected error during login:', error);
-      return false;
+      return { success: false, error: 'unknown_error' };
     }
   };
 
@@ -164,7 +178,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login, 
         register, 
         logout, 
-        isAuthenticated: !!user 
+        isAuthenticated: !!user,
+        resendEmailVerification,
       }}
     >
       {children}

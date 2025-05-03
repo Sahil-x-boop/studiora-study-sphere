@@ -28,11 +28,13 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const LoginPage: React.FC = () => {
-  const { login } = useAuth();
+  const { login, resendEmailVerification } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResendingEmail, setIsResendingEmail] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [emailNeedsVerification, setEmailNeedsVerification] = useState<string | null>(null);
   
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -45,10 +47,11 @@ const LoginPage: React.FC = () => {
   const onSubmit = async (data: LoginFormValues) => {
     setIsSubmitting(true);
     setLoginError(null);
+    setEmailNeedsVerification(null);
     
     try {
       console.log('Login attempt with:', data.email);
-      const success = await login(data.email, data.password);
+      const { success, error } = await login(data.email, data.password);
       
       if (success) {
         toast({
@@ -57,12 +60,21 @@ const LoginPage: React.FC = () => {
         });
         navigate('/dashboard');
       } else {
-        setLoginError("Invalid email or password. Please try again.");
-        toast({
-          title: "Login failed",
-          description: "Invalid email or password. Please try again.",
-          variant: "destructive",
-        });
+        if (error === 'email_not_confirmed') {
+          setEmailNeedsVerification(data.email);
+          toast({
+            title: "Email not confirmed",
+            description: "Please check your email for a verification link or request a new one.",
+            variant: "destructive",
+          });
+        } else {
+          setLoginError("Invalid email or password. Please try again.");
+          toast({
+            title: "Login failed",
+            description: "Invalid email or password. Please try again.",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -77,6 +89,28 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  const handleResendVerification = async () => {
+    if (!emailNeedsVerification) return;
+    
+    setIsResendingEmail(true);
+    try {
+      await resendEmailVerification(emailNeedsVerification);
+      toast({
+        title: "Verification email sent",
+        description: "Please check your email for the verification link.",
+      });
+    } catch (error) {
+      console.error("Error resending verification email:", error);
+      toast({
+        title: "Error",
+        description: "Failed to resend verification email. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResendingEmail(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-studiora-50 to-studiora-100 p-4">
       <Card className="w-full max-w-md shadow-lg">
@@ -88,6 +122,20 @@ const LoginPage: React.FC = () => {
           {loginError && (
             <div className="mb-4 p-3 text-sm border border-red-200 bg-red-50 text-red-600 rounded-md">
               {loginError}
+            </div>
+          )}
+          {emailNeedsVerification && (
+            <div className="mb-4 p-3 text-sm border border-amber-200 bg-amber-50 text-amber-700 rounded-md">
+              <p className="mb-2">Your email address has not been verified yet.</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-1 bg-amber-100 hover:bg-amber-200 border-amber-300"
+                onClick={handleResendVerification}
+                disabled={isResendingEmail}
+              >
+                {isResendingEmail ? "Sending..." : "Resend verification email"}
+              </Button>
             </div>
           )}
           <Form {...form}>
