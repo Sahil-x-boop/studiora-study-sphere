@@ -32,6 +32,7 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -43,7 +44,10 @@ const LoginPage: React.FC = () => {
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsSubmitting(true);
+    setLoginError(null);
+    
     try {
+      console.log('Login attempt with:', data.email);
       const success = await login(data.email, data.password);
       
       if (success) {
@@ -53,6 +57,7 @@ const LoginPage: React.FC = () => {
         });
         navigate('/dashboard');
       } else {
+        setLoginError("Invalid email or password. Please try again.");
         toast({
           title: "Login failed",
           description: "Invalid email or password. Please try again.",
@@ -60,12 +65,13 @@ const LoginPage: React.FC = () => {
         });
       }
     } catch (error) {
+      console.error("Login error:", error);
+      setLoginError("An unexpected error occurred. Please try again.");
       toast({
         title: "Login error",
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
-      console.error("Login error:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -79,6 +85,11 @@ const LoginPage: React.FC = () => {
           <CardDescription>Enter your credentials to access your account</CardDescription>
         </CardHeader>
         <CardContent>
+          {loginError && (
+            <div className="mb-4 p-3 text-sm border border-red-200 bg-red-50 text-red-600 rounded-md">
+              {loginError}
+            </div>
+          )}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField

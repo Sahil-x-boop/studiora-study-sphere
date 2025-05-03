@@ -16,6 +16,7 @@ import RegisterPage from "./pages/RegisterPage";
 import TimerPage from "./pages/TimerPage";
 import TasksPage from "./pages/TasksPage";
 import NotesPage from "./pages/NotesPage";
+import StudyGroupPage from "./pages/StudyGroupPage";
 import NotFound from "./pages/NotFound";
 
 // Create a new query client
@@ -73,6 +74,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <NotesPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/study-groups" 
+                element={
+                  <ProtectedRoute>
+                    <StudyGroupPage />
                   </ProtectedRoute>
                 } 
               />

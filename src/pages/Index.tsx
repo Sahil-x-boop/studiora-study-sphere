@@ -10,9 +10,13 @@ import { Separator } from '@/components/ui/separator';
 import { Clock, BookOpen, CheckSquare, Lightbulb, Users, CalendarRange } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  const displayName = user?.name || user?.email?.split('@')[0] || 'Student';
   
   return (
     <SidebarProvider>
@@ -23,19 +27,21 @@ const Index = () => {
             <header className="mb-8">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-studiora-950">Welcome back, John!</h1>
+                  <h1 className="text-3xl font-bold text-studiora-950">Welcome back, {displayName}!</h1>
                   <p className="text-gray-500">Track your progress, manage tasks, and focus on your studies.</p>
                 </div>
                 <div className="mt-4 md:mt-0 flex gap-2">
                   <Button 
                     variant="outline" 
                     className="border-studiora-200 text-studiora-700 hover:bg-studiora-50"
+                    onClick={() => navigate('/dashboard')}
                   >
                     <CalendarRange className="mr-2 h-4 w-4" />
                     Weekly Planner
                   </Button>
                   <Button
                     className="bg-studiora-600 hover:bg-studiora-700 text-white"
+                    onClick={() => navigate('/study-groups')}
                   >
                     <Users className="mr-2 h-4 w-4" />
                     Study Group

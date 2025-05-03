@@ -94,13 +94,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Login functionality
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      console.log('Attempting to login with:', email);
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) {
         console.error('Login error:', error.message);
         return false;
       }
       
+      console.log('Login successful:', data);
       return true;
     } catch (error) {
       console.error('Unexpected error during login:', error);
@@ -111,12 +113,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Register functionality
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
     try {
-      const { error: signUpError, data } = await supabase.auth.signUp({ 
+      // First create the user in auth
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({ 
         email, 
-        password, 
-        options: { 
-          data: { name } 
-        } 
+        password,
+        options: {
+          data: { name }
+        }
       });
       
       if (signUpError) {
@@ -124,12 +127,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
       
-      if (data?.user) {
+      if (authData?.user) {
         // Create or update profile
         const { error: profileError } = await supabase
           .from('profiles')
           .upsert({ 
-            id: data.user.id, 
+            id: authData.user.id, 
             name, 
             email,
             updated_at: new Date().toISOString()
