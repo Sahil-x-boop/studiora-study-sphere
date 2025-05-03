@@ -51,16 +51,16 @@ export function AppSidebar() {
     <div
       className={`border-r bg-sidebar-background text-sidebar-foreground transition-all ${
         collapsed ? 'w-16' : 'w-64'
-      } min-h-screen`}
+      } min-h-screen relative`}
     >
       {isMobile && (
         <Button
           variant="ghost"
           size="icon"
-          className="absolute right-4 top-4 z-50 text-sidebar-foreground"
+          className="absolute right-2 top-2 z-50 text-sidebar-foreground md:hidden"
           onClick={toggleSidebar}
         >
-          <Menu />
+          <Menu className="h-5 w-5" />
         </Button>
       )}
       
@@ -68,7 +68,7 @@ export function AppSidebar() {
         {!collapsed && (
           <h1 className="text-xl font-bold text-sidebar-primary">StudiOra</h1>
         )}
-        {collapsed && <div className="text-2xl font-bold text-sidebar-primary">S</div>}
+        {collapsed && <div className="text-2xl font-bold text-sidebar-primary mx-auto">S</div>}
       </div>
       
       {user && (
@@ -111,20 +111,18 @@ export function AppSidebar() {
       </nav>
       
       {user && (
-        <>
-          <div className="absolute bottom-4 w-full px-2">
-            <Button
-              variant="ghost"
-              className={`w-full justify-start text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground ${
-                collapsed ? 'justify-center' : ''
-              }`}
-              onClick={handleLogout}
-            >
-              <LogOut className={collapsed ? '' : 'mr-2'} />
-              {!collapsed && <span>Log out</span>}
-            </Button>
-          </div>
-        </>
+        <div className="absolute bottom-4 w-full px-2">
+          <Button
+            variant="ghost"
+            className={`w-full justify-start text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground ${
+              collapsed ? 'justify-center' : ''
+            }`}
+            onClick={handleLogout}
+          >
+            <LogOut className={collapsed ? '' : 'mr-2'} />
+            {!collapsed && <span>Log out</span>}
+          </Button>
+        </div>
       )}
     </div>
   );
