@@ -19,8 +19,8 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     toast({
       title: "Logged out",
       description: "You have been successfully logged out."
@@ -32,7 +32,8 @@ export function AppSidebar() {
     setOpen(!collapsed);
   };
 
-  const getInitials = (name: string) => {
+  const getInitials = (name: string | null) => {
+    if (!name) return 'U';
     return name
       .split(' ')
       .map((n) => n[0])
@@ -57,7 +58,7 @@ export function AppSidebar() {
         <Button
           variant="ghost"
           size="icon"
-          className="absolute right-2 top-2 z-50 text-sidebar-foreground md:hidden"
+          className="absolute right-0 top-2 z-50 text-sidebar-foreground md:hidden"
           onClick={toggleSidebar}
         >
           <Menu className="h-5 w-5" />
@@ -76,12 +77,12 @@ export function AppSidebar() {
           <div className={`flex ${collapsed ? 'justify-center' : 'items-center space-x-3'}`}>
             <Avatar className={collapsed ? "h-10 w-10" : "h-9 w-9"}>
               <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground">
-                {user?.name ? getInitials(user.name) : 'U'}
+                {getInitials(user.name)}
               </AvatarFallback>
             </Avatar>
             {!collapsed && (
               <div className="overflow-hidden">
-                <p className="truncate text-sm font-medium">{user.name}</p>
+                <p className="truncate text-sm font-medium">{user.name || 'User'}</p>
                 <p className="truncate text-xs text-sidebar-foreground/70">{user.email}</p>
               </div>
             )}

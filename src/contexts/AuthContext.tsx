@@ -1,11 +1,13 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
 // Define user type
 interface User {
   id: string;
-  name: string;
-  email: string;
+  name: string | null;
+  email: string | null;
 }
 
 // Auth context type
@@ -14,7 +16,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   register: (name: string, email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -26,57 +28,129 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   
-  // Check if user is logged in on mount
+  // Check if user is logged in on mount and set up subscription
   useEffect(() => {
-    const storedUser = localStorage.getItem('studiora_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    // Initial session check
+    const fetchUser = async () => {
+      setLoading(true);
+      
+      // Get the current session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        const { id, email } = session.user;
+        
+        // Get additional user details from profiles table (if needed)
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', id)
+          .single();
+          
+        setUser({
+          id,
+          email,
+          name: profile?.name || email?.split('@')[0] || null
+        });
+      }
+      
+      setLoading(false);
+    };
+    
+    fetchUser();
+    
+    // Set up auth subscription
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session?.user) {
+          const { id, email } = session.user;
+          
+          // Get additional user details from profiles table (if needed)
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name')
+            .eq('id', id)
+            .single();
+            
+          setUser({
+            id,
+            email,
+            name: profile?.name || email?.split('@')[0] || null
+          });
+        } else {
+          setUser(null);
+        }
+        
+        setLoading(false);
+      }
+    );
+    
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // Login functionality (mock)
+  // Login functionality
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Simple validation
-    if (!email || !password) {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) {
+        console.error('Login error:', error.message);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Unexpected error during login:', error);
       return false;
     }
-
-    // Mock successful login
-    const mockUser: User = {
-      id: 'user-' + Math.random().toString(36).substr(2, 9),
-      name: email.split('@')[0],
-      email
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem('studiora_user', JSON.stringify(mockUser));
-    return true;
   };
 
-  // Register functionality (mock)
+  // Register functionality
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
-    // Simple validation
-    if (!name || !email || !password) {
+    try {
+      const { error: signUpError, data } = await supabase.auth.signUp({ 
+        email, 
+        password, 
+        options: { 
+          data: { name } 
+        } 
+      });
+      
+      if (signUpError) {
+        console.error('Registration error:', signUpError.message);
+        return false;
+      }
+      
+      if (data?.user) {
+        // Create or update profile
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({ 
+            id: data.user.id, 
+            name, 
+            email,
+            updated_at: new Date().toISOString()
+          });
+          
+        if (profileError) {
+          console.error('Profile creation error:', profileError.message);
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Unexpected error during registration:', error);
       return false;
     }
-
-    // Mock successful registration
-    const mockUser: User = {
-      id: 'user-' + Math.random().toString(36).substr(2, 9),
-      name,
-      email
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem('studiora_user', JSON.stringify(mockUser));
-    return true;
   };
 
   // Logout functionality
-  const logout = () => {
+  const logout = async (): Promise<void> => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem('studiora_user');
   };
 
   return (

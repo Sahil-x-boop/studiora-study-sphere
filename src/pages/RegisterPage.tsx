@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -36,6 +36,7 @@ const RegisterPage: React.FC = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -48,19 +49,20 @@ const RegisterPage: React.FC = () => {
   });
 
   const onSubmit = async (data: RegisterFormValues) => {
+    setIsSubmitting(true);
     try {
       const success = await register(data.name, data.email, data.password);
       
       if (success) {
         toast({
           title: "Registration successful",
-          description: "Welcome to StudiOra!",
+          description: "Welcome to StudiOra! Your account has been created.",
         });
         navigate('/dashboard');
       } else {
         toast({
           title: "Registration failed",
-          description: "Please check your information and try again.",
+          description: "This email might already be in use or there was an issue with your information.",
           variant: "destructive",
         });
       }
@@ -70,6 +72,9 @@ const RegisterPage: React.FC = () => {
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
+      console.error("Registration error:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -135,8 +140,12 @@ const RegisterPage: React.FC = () => {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full bg-studiora-600 hover:bg-studiora-700">
-                Create Account
+              <Button 
+                type="submit" 
+                className="w-full bg-studiora-600 hover:bg-studiora-700"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Creating Account..." : "Create Account"}
               </Button>
             </form>
           </Form>

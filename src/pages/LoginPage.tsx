@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +31,7 @@ const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -41,6 +42,7 @@ const LoginPage: React.FC = () => {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
+    setIsSubmitting(true);
     try {
       const success = await login(data.email, data.password);
       
@@ -53,7 +55,7 @@ const LoginPage: React.FC = () => {
       } else {
         toast({
           title: "Login failed",
-          description: "Please check your credentials and try again.",
+          description: "Invalid email or password. Please try again.",
           variant: "destructive",
         });
       }
@@ -63,6 +65,9 @@ const LoginPage: React.FC = () => {
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
+      console.error("Login error:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -102,8 +107,12 @@ const LoginPage: React.FC = () => {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full bg-studiora-600 hover:bg-studiora-700">
-                Login
+              <Button 
+                type="submit" 
+                className="w-full bg-studiora-600 hover:bg-studiora-700"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Logging in..." : "Login"}
               </Button>
             </form>
           </Form>
